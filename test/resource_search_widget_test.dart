@@ -23,6 +23,7 @@ import 'package:asterlink/ui/app_navigation.dart';
 import 'package:asterlink/ui/app_background.dart';
 import 'package:asterlink/ui/app_theme.dart';
 import 'package:asterlink/ui/browser_page.dart';
+import 'package:asterlink/ui/parse_page.dart';
 import 'package:asterlink/ui/preview_page.dart';
 import 'package:asterlink/ui/resource_search_page.dart';
 import 'package:asterlink/ui/resource_home_page.dart';
@@ -260,7 +261,7 @@ void main() {
           child: child!,
         ),
         home: root
-            ? MainShell(services, initialTab: initialTab)
+            ? MainShell(services, initialTab: initialTab == 1 ? 0 : initialTab)
             : home
             ? Scaffold(
                 body: ResourceHomePage(
@@ -272,7 +273,8 @@ void main() {
       ),
     );
     // 资源页已脱离底部 tab，root 模式下把资源页 push 在 MainShell 之上
-    // （ResourceHomePage 自身不带 Scaffold，需与 home 模式一致包一层）
+    // （ResourceHomePage 自身不带 Scaffold，需与 home 模式一致包一层）；
+    // MainShell 停在解析 tab，保证 openResource 所需的 ParsePage.active 成立
     if (root && initialTab == 1) {
       unawaited(
         Navigator.of(tester.element(find.byType(MainShell))).push<void>(
@@ -281,7 +283,12 @@ void main() {
               body: ResourceHomePage(
                 services,
                 active: true,
-                onOpen: onOpen ?? (_) async {},
+                onOpen: onOpen ??
+                    (hit) => tester
+                        .state<ParsePageState>(
+                          find.byType(ParsePage, skipOffstage: false),
+                        )
+                        .openResource(hit),
               ),
             ),
           ),
@@ -580,28 +587,14 @@ void main() {
   testWidgets(
     'vertical scrolling and small horizontal drags keep the current tab',
     (tester) async {
-      await render(
-        tester,
-        root: true,
-        recommendations: List.generate(
-          20,
-          (n) => ResourceSearchHit.fromRaw({
-            'title': '学习资料 $n',
-            'url': 'https://pan.quark.cn/s/scroll$n',
-            'recommendation_id': n + 1,
-          }),
-        ),
-      );
+      await render(tester, root: true, initialTab: 0);
       final area = find.byKey(const Key('main-page-swipe-area'));
       await tester.drag(area, const Offset(8, -240));
       await tester.pumpAndSettle();
-      final scrollView = tester.widget<CustomScrollView>(
-        find.descendant(
-          of: find.byType(ResourceHomePage),
-          matching: find.byType(CustomScrollView),
-        ),
+      expect(
+        tester.widget<AppNavigation>(find.byType(AppNavigation)).selectedIndex,
+        0,
       );
-      expect(scrollView.controller!.offset, greaterThan(0));
       await tester.timedDrag(
         area,
         const Offset(30, 0),
@@ -610,7 +603,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         tester.widget<AppNavigation>(find.byType(AppNavigation)).selectedIndex,
-        1,
+        0,
       );
       expect(tester.takeException(), isNull);
     },
@@ -796,7 +789,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(ResourceHomePage), findsOneWidget);
       expect(find.byType(ResourceSearchPage), findsNothing);
-      expect(find.byKey(const ValueKey('navigation-4')), findsOneWidget);
       expect(
         tester
             .widget<TextField>(
