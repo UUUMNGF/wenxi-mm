@@ -66,11 +66,12 @@ jobs:
       - name: Prepare pinned Windows ARM64 SDK
         if: matrix.target == 'windows-arm64'
         run: ./tool/prepare-ci-windows-arm64.ps1
-      - name: Require official release configuration
+      - name: Require release configuration
         run: |
-          if ($env:ASTERLINK_APPLICATION_ID -ne 'com.asterlink.app' -or
+          # fork 版：包名用自定义 ID（避免与上游官方包签名冲突），远控/统计允许占位值
+          if (-not $env:ASTERLINK_APPLICATION_ID -or
               -not $env:ASTERLINK_CONTROL_URL -or -not $env:UMENG_APPKEY) {
-            throw 'Configure the original application ID, control URL and statistics key in the release environment.'
+            throw 'Configure the application ID, control URL and statistics key in the release environment.'
           }
       - name: Prepare Android signing files
         if: matrix.target == 'android'
