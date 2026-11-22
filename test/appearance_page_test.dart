@@ -12,7 +12,6 @@ import 'package:asterlink/domain/settings.dart';
 import 'package:asterlink/main.dart';
 import 'package:asterlink/ui/appearance_page.dart';
 import 'package:asterlink/ui/app_theme.dart';
-import 'package:asterlink/ui/app_navigation.dart';
 import 'package:asterlink/ui/app_switch.dart';
 import 'support.dart';
 

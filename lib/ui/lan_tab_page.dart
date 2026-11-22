@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../app_services.dart';
-import 'app_theme.dart';
 import 'common.dart';
 
 /// 局域网连接占位页：完整连接界面后续接入，先提供设备互联入口。
