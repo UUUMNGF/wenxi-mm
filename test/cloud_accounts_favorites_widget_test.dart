@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:asterlink/core/json.dart';
 import 'package:asterlink/domain/models.dart';
 import 'package:asterlink/main.dart';
+import 'package:asterlink/ui/browser_page.dart';
 import 'package:asterlink/ui/cloud_accounts_page.dart';
 import 'package:asterlink/ui/cloud_favorites_page.dart';
 import 'package:asterlink/ui/native_password_login_page.dart';
@@ -86,7 +87,15 @@ void main() {
         await tap(tester, find.byTooltip('旧目录视频.mp4操作'));
         await tap(tester, find.text('收藏'));
         expect(fixture.services.favorites.all, hasLength(2));
-        await tap(tester, find.byTooltip('网盘收藏'));
+        // AppBar 的网盘收藏按钮已随改版删除，改为直接打开收藏页
+        await Navigator.of(
+          tester.element(find.byType(BrowserPage)),
+        ).push<void>(
+          MaterialPageRoute(
+            builder: (_) => CloudFavoritesPage(fixture.services),
+          ),
+        );
+        await tester.pumpAndSettle();
         await tap(tester, find.text('旧目录视频.mp4'));
         final field = tester.widget<TextField>(find.byType(TextField));
         expect(field.controller!.text, '旧目录视频.mp4');

@@ -148,8 +148,8 @@ void main() {
                 .hitTestable(),
             findsOneWidget,
           );
-          await tester.pageBack();
-          await settle(tester);
+          // 面包屑已删，从子目录逐级返回到根目录
+          await back(tester);
           expect(controller(tester).offset, closeTo(rootOffset, .01));
           final restored = find.descendant(
             of: fileList(),

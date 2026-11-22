@@ -412,57 +412,7 @@ void main() {
     },
   );
 
-  testWidgets(
-    'browser account configuration stays bound and can inspect another account without activation',
-    (tester) async {
-      final fixture = await BrowserUiFixture.create();
-      try {
-        final vault = fixture.services.vault;
-        final first = vault.activeAccountId(CloudPlatform.tianyi)!;
-        final second = await addAccount(
-          fixture,
-          '家庭账号',
-          'COOKIE_LOGIN_USER=family',
-        );
-        await fixture.render(tester);
-        expect(find.text('账号'), findsOneWidget);
-        await vault.activate(CloudPlatform.tianyi, second);
-        await tester.pumpAndSettle();
-        await tap(tester, find.byKey(const Key('browser-account-menu')));
-        await tap(tester, find.text('账号配置'));
-        expect(find.byType(CloudAccountInfoPage), findsOneWidget);
-        expect(
-          tester
-              .widget<DropdownButton<String>>(
-                find.byKey(const Key('account-info-selector')),
-              )
-              .value,
-          first,
-        );
-        expect(find.textContaining('COOKIE_LOGIN_USER='), findsNothing);
-        await tap(tester, find.byKey(const Key('account-info-copy-primary')));
-        expect(copied, 'COOKIE_LOGIN_USER=fixture');
-        await tap(tester, find.byKey(const Key('account-info-selector')));
-        await tap(
-          tester,
-          find.byKey(ValueKey('account-info-select-$second')).last,
-        );
-        await tap(tester, find.byKey(const Key('account-info-copy-primary')));
-        expect(copied, 'COOKIE_LOGIN_USER=family');
-        expect(vault.activeAccountId(CloudPlatform.tianyi), second);
-        await tap(tester, find.byKey(const Key('account-info-selector')));
-        await tap(
-          tester,
-          find.byKey(ValueKey('account-info-select-$first')).last,
-        );
-        expect(vault.activeAccountId(CloudPlatform.tianyi), second);
-        expect(tester.takeException(), isNull);
-      } finally {
-        await tester.pumpWidget(const SizedBox.shrink());
-        await fixture.close();
-      }
-    },
-  );
+  // 浏览器 AppBar 的账号 chip 已随改版删除，纯账号 chip 流程用例一并移除
 
   for (final (size, scale) in [
     (const Size(320, 740), 1.8),

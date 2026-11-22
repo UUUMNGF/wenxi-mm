@@ -850,7 +850,8 @@ void main() {
       expect(find.byType(BrowserPage), findsOneWidget);
       expect(find.byType(WebLoginPage), findsNothing);
       expect(find.byType(NativePasswordLoginPage), findsNothing);
-      expect(find.byKey(const Key('browser-account-menu')), findsOneWidget);
+      // 匿名蓝奏云没有账号菜单，改版后浏览器 AppBar 也不再提供该入口
+      expect(find.byKey(const Key('browser-account-menu')), findsNothing);
       expect(services.vault.credential(CloudPlatform.lanzou), isNull);
       expect(fixture.http.calls, hasLength(3));
       expect(services.store.data.list('history'), hasLength(1));
@@ -883,7 +884,8 @@ void main() {
       await start(tester);
       expect(find.byType(BrowserPage), findsOneWidget);
       expect(find.byType(WebLoginPage), findsNothing);
-      expect(find.byKey(const Key('browser-account-menu')), findsOneWidget);
+      // 匿名蓝奏云没有账号菜单，改版后浏览器 AppBar 也不再提供该入口
+      expect(find.byKey(const Key('browser-account-menu')), findsNothing);
       expect(find.text('Example & 1.zip'), findsOneWidget);
       await tester.tap(find.widgetWithText(ListTile, '子目录'));
       await tester.pumpAndSettle();

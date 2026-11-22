@@ -2979,6 +2979,11 @@ class _BrowserPageState extends State<BrowserPage> {
         final controls = Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            IconButton(
+              tooltip: '刷新文件',
+              onPressed: loading || changingAccount ? null : _refresh,
+              icon: const Icon(CupertinoIcons.arrow_clockwise, size: 20),
+            ),
             AppPopupMenuButton<String>(
               tooltip: '排序',
               icon: CupertinoIcons.sort_down,
@@ -3056,6 +3061,9 @@ class _BrowserPageState extends State<BrowserPage> {
         if (constraints.maxWidth < 480 ||
             constraints.maxWidth < 650 &&
                 MediaQuery.textScalerOf(context).scale(14) > 18) {
+          final compactSearch =
+              !filtering &&
+              MediaQuery.textScalerOf(context).scale(14) <= 18;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -3063,23 +3071,33 @@ class _BrowserPageState extends State<BrowserPage> {
                 field,
                 const SizedBox(height: 4),
               ],
+              if (!compactSearch && !filtering) ...[
+                miniSearch,
+                const SizedBox(height: 4),
+              ],
               Row(
                 children: [
-                  Text(
-                    '${files.length} 项',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, color: secondary(context)),
+                  Flexible(
+                    child: Text(
+                      '${files.length} 项',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: secondary(context),
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: 10),
-                  if (!filtering)
+                  if (compactSearch) ...[
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: miniSearch,
                       ),
-                    )
-                  else
+                    ),
+                    const SizedBox(width: 4),
+                  ] else
                     const Spacer(),
                   controls,
                 ],
@@ -3583,7 +3601,9 @@ class _BrowserPageState extends State<BrowserPage> {
       child: PageFrame(
         title: widget.picking
             ? '选择目标文件夹'
-            : session.title.ifEmpty(session.platform.label),
+            : stack.isEmpty
+            ? session.title.ifEmpty(session.platform.label)
+            : stack.last.$2,
         actions: [
           if (_canUpload || _canCreateFolder)
             if (widget.picking && _canCreateFolder)

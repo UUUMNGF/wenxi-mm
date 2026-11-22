@@ -6,7 +6,6 @@ import 'package:asterlink/data/http.dart';
 import 'package:asterlink/domain/models.dart';
 import 'package:asterlink/ui/skeleton_loading.dart';
 import 'browser_test_support.dart';
-import 'cloud_accounts_favorites_test.dart' show addFixtureAccount;
 import 'support.dart';
 
 class _SearchConnector extends BrowserTestConnector {
@@ -325,7 +324,7 @@ void main() {
       expect(download.$3!.label, '测试账号');
       await menu(tester, '年度报告.txt', '打开所在文件夹');
       expect(connector.reads.last.$2, 'archive');
-      expect(find.text('工作资料'), findsOneWidget);
+      // 打开所在文件夹后 AppBar 标题显示当前目录名，面包屑已随改版删除
       expect(find.text('往年'), findsOneWidget);
       expect(
         tester
@@ -339,7 +338,7 @@ void main() {
   );
 
   browserTest(
-    'Opening a matching folder restores its actual breadcrumb trail',
+    'Opening a matching folder shows the restored folder title',
     (tester) async {
       await fixture.render(tester);
       await recursive(tester);
@@ -348,7 +347,11 @@ void main() {
       await tester.tap(find.widgetWithText(ListTile, '往年'));
       await tester.pumpAndSettle();
       expect(connector.reads.last.$2, 'archive');
-      expect(find.text('工作资料'), findsOneWidget);
+      // 面包屑已删，AppBar 标题显示当前文件夹名
+      expect(
+        find.descendant(of: find.byType(AppBar), matching: find.text('往年')),
+        findsOneWidget,
+      );
       expect(find.text('年度报告.txt'), findsOneWidget);
       expect(find.byKey(const Key('browser-search-status')), findsNothing);
       await tester.tap(find.byType(BackButton));
@@ -430,45 +433,7 @@ void main() {
     },
   );
 
-  browserTest(
-    'Account switching clears pending search data and keeps the new account bound',
-    (tester) async {
-      final second = await addFixtureAccount(
-        fixture.services.vault,
-        CloudPlatform.tianyi,
-        '第二账号',
-        10,
-      );
-      await fixture.render(tester);
-      connector.pending['work'] = Completer();
-      connector.pending['photos'] = Completer();
-      await recursive(tester);
-      await search(tester, '报告', wait: false);
-      await tester.tap(find.byTooltip('返回文件列表'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('切换或更新账号'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-      await tester.tap(find.text('第二账号'));
-      await tester.pumpAndSettle();
-      expect(
-        fixture.services.vault.activeAccountId(CloudPlatform.tianyi),
-        second,
-      );
-      for (final entry in connector.pending.entries) {
-        entry.value.complete(connector.tree[entry.key]);
-      }
-      await tester.pumpAndSettle();
-      expect(find.text('第二账号报告.txt'), findsOneWidget);
-      expect(find.text('当前报告.txt'), findsNothing);
-      expect(find.text('季度报告.pdf'), findsNothing);
-      await recursive(tester);
-      await search(tester, '报告');
-      expect(find.text('搜索完成 · 共 1 项'), findsOneWidget);
-      expect(find.text('第二账号报告.txt'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    },
-  );
+  // 浏览器 AppBar 的账号 chip 已随改版删除，账号切换搜索用例一并移除
 
   browserTest(
     'A changed login cannot reveal the cached list of an idle search page',

@@ -6,18 +6,14 @@ import 'package:asterlink/core/json.dart';
 import 'package:asterlink/core/operation_progress.dart';
 import 'package:asterlink/domain/models.dart';
 import 'package:asterlink/main.dart';
-import 'package:asterlink/ui/app_popup_menu.dart';
 import 'package:asterlink/ui/browser_page.dart';
 import 'package:asterlink/ui/cloud_accounts_page.dart';
 import 'package:asterlink/ui/cloud_favorites_page.dart';
 import 'package:asterlink/ui/common.dart';
-import 'package:asterlink/ui/loading_indicator.dart';
-import 'package:asterlink/ui/skeleton_loading.dart';
 import 'package:asterlink/ui/native_password_login_page.dart';
 import 'package:asterlink/ui/parse_page.dart';
 import 'package:asterlink/ui/recent_playback_page.dart';
 import 'browser_test_support.dart';
-import 'cloud_accounts_favorites_test.dart' show addFixtureAccount;
 
 class _SwitchConnector extends BrowserTestConnector {
   _SwitchConnector() : super(CloudPlatform.tianyi);
@@ -83,22 +79,6 @@ void main() {
     expect(tester.takeException(), isNull);
   }
 
-  Future<void> account(
-    WidgetTester tester,
-    String value, {
-    bool settle = true,
-  }) async {
-    await tap(
-      tester,
-      find.byKey(const Key('browser-account-menu')),
-      settle: settle,
-    );
-    final item = find.byWidgetPredicate(
-      (widget) => widget is PopupMenuItem<String> && widget.value == value,
-    );
-    await tap(tester, item, settle: settle);
-  }
-
   Future<void> scenario(
     WidgetTester tester,
     Future<void> Function(BrowserUiFixture fixture, _SwitchConnector connector)
@@ -123,188 +103,6 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
       await fixture.close();
     }
-  }
-
-  for (final mode in ['personal', 'family', 'share']) {
-    testWidgets(
-      'Quick account switch reloads the $mode session for its owner',
-      (tester) => scenario(tester, (fixture, connector) async {
-        final vault = fixture.services.vault;
-        final second = await addFixtureAccount(vault, platform, '家庭账号', 10);
-        final session = switch (mode) {
-          'family' => connector.familySession(connector.spaces.first),
-          'share' => BrowseSession(
-            platform: platform,
-            mode: BrowseMode.share,
-            title: '分享文件',
-            rootId: 'share-root',
-            sourceLink: ParsedLink(
-              source: 'https://cloud.189.cn/t/fixture',
-              url: 'https://cloud.189.cn/t/fixture',
-              kind: LinkKind.cloudShare,
-              platform: platform,
-              shareId: 'fixture',
-              passcode: '1234',
-            ),
-          ),
-          _ => connector.personalSession(),
-        };
-        await fixture.render(tester, session: session);
-        await account(tester, 'account:$second');
-        expect(vault.activeAccountId(platform), second);
-        expect(find.text('家庭账号-10.mp4'), findsOneWidget);
-        expect(connector.accountReads.last, (
-          '家庭账号',
-          '',
-          mode == 'share' ? 'share-root' : 'personal-root',
-        ));
-        if (mode == 'share') {
-          expect(connector.shares.single.$1, '家庭账号');
-          expect(connector.shares.single.$2.passcode, '1234');
-        }
-        await tap(tester, find.byKey(const Key('browser-account-menu')));
-        final menu = tester.widget<AppPopupMenuButton<String>>(
-          find.byKey(const Key('browser-account-menu')),
-        );
-        expect(
-          menu.actions.singleWhere((a) => a.selected).value,
-          'account:$second',
-        );
-      }),
-    );
-  }
-
-  testWidgets(
-    'An old folder response cannot replace the newly selected account',
-    (tester) => scenario(tester, (fixture, connector) async {
-      final second = await addFixtureAccount(
-        fixture.services.vault,
-        platform,
-        '家庭账号',
-        10,
-      );
-      await fixture.render(tester);
-      final old = connector.pendingFolder = Completer<List<CloudFile>>();
-      await tap(tester, find.text('假期相册'), settle: false);
-      expect(find.text('正在加载网盘文件…'), findsOneWidget);
-      expect(find.byType(AppSkeleton), findsOneWidget);
-      expect(find.byKey(const Key('browser-files-skeleton')), findsOneWidget);
-      expect(
-        tester.getCenter(find.text('正在加载网盘文件…')).dx,
-        tester.view.physicalSize.width / 2,
-      );
-      await account(tester, 'account:$second', settle: false);
-      await tester.pumpAndSettle();
-      expect(find.text('家庭账号-10.mp4'), findsOneWidget);
-      old.complete([const CloudFile(id: 'stale', name: '不应显示的旧文件.mp4')]);
-      await tester.pumpAndSettle();
-      expect(find.byType(AppSkeleton), findsNothing);
-      expect(find.text('不应显示的旧文件.mp4'), findsNothing);
-      expect(find.text('家庭账号-10.mp4'), findsOneWidget);
-      expect(fixture.services.vault.activeAccountId(platform), second);
-    }),
-  );
-
-  testWidgets(
-    'Failed and cancelled account switches preserve the current login and folder',
-    (tester) => scenario(tester, (fixture, connector) async {
-      final vault = fixture.services.vault,
-          first = vault.activeAccountId(platform);
-      final second = await addFixtureAccount(vault, platform, '家庭账号', 10);
-      await fixture.render(tester);
-      await tap(tester, find.text('假期相册'));
-      connector.failOwner = '家庭账号';
-      await account(tester, 'account:$second');
-      expect(vault.activeAccountId(platform), first);
-      expect(find.text('旧目录视频.mp4'), findsOneWidget);
-      connector.failOwner = null;
-      final pending = connector.pendingRoots['家庭账号'] =
-          Completer<List<CloudFile>>();
-      await account(tester, 'account:$second', settle: false);
-      expect(find.text('正在读取文件列表…'), findsOneWidget);
-      expect(find.byType(AppLoadingIndicator), findsAtLeastNWidgets(1));
-      await tap(tester, find.text('取消'));
-      pending.complete([const CloudFile(id: 'late', name: '已取消的账号文件.mp4')]);
-      await tester.pumpAndSettle();
-      expect(vault.activeAccountId(platform), first);
-      expect(find.text('旧目录视频.mp4'), findsOneWidget);
-      expect(find.text('已取消的账号文件.mp4'), findsNothing);
-    }),
-  );
-
-  testWidgets(
-    'Current account can reload changed credentials while keeping its family space',
-    (tester) => scenario(tester, (fixture, connector) async {
-      final vault = fixture.services.vault,
-          owner = vault.activeAccountId(platform)!;
-      await fixture.render(
-        tester,
-        session: connector.familySession(connector.spaces.first),
-      );
-      await vault.putCredential(
-        platform,
-        Credential('更新账号', {'primary': 'fixture-new'}, updatedAt: 20),
-      );
-      await tester.pumpAndSettle();
-      await account(tester, 'account:$owner');
-      expect(find.text('更新账号-20.mp4'), findsOneWidget);
-      expect(connector.accountReads.last.$2, connector.spaces.first.id);
-      await tap(tester, find.byTooltip('刷新文件'));
-      expect(find.textContaining('账号已变化'), findsNothing);
-    }),
-  );
-
-  for (final size in [const Size(393, 864), const Size(1100, 780)]) {
-    testWidgets(
-      'Quick login update and add account preserve cancelled changes at $size',
-      (tester) => scenario(tester, (fixture, connector) async {
-        final vault = fixture.services.vault,
-            owner = vault.activeAccountId(platform)!;
-        await fixture.render(tester, size: size);
-        await tap(tester, find.text('假期相册'));
-        final beforeReads = connector.accountReads.length;
-        await account(tester, 'login');
-        expect(
-          tester
-              .widget<NativePasswordLoginPage>(
-                find.byType(NativePasswordLoginPage),
-              )
-              .accountId,
-          owner,
-        );
-        await tester.pageBack();
-        await tester.pumpAndSettle();
-        expect(find.text('旧目录视频.mp4'), findsOneWidget);
-        expect(connector.accountReads.length, beforeReads);
-        await account(tester, 'add');
-        final added = tester
-            .widget<NativePasswordLoginPage>(
-              find.byType(NativePasswordLoginPage),
-            )
-            .accountId;
-        expect(added, isNot(owner));
-        await tester.pageBack();
-        await tester.pumpAndSettle();
-        expect(vault.profiles(platform), hasLength(1));
-        expect(vault.activeAccountId(platform), owner);
-        expect(find.text('旧目录视频.mp4'), findsOneWidget);
-        await account(tester, 'login');
-        // Simulate the existing login service saving a successful replacement.
-        await vault.putCredential(
-          platform,
-          Credential('已更新', {'primary': 'fixture-updated'}, updatedAt: 30),
-        );
-        await tester.pageBack();
-        await tester.pumpAndSettle();
-        expect(find.text('已更新-30.mp4'), findsOneWidget);
-        tester.view.physicalSize = const Size(320, 700);
-        tester.platformDispatcher.textScaleFactorTestValue = 1.8;
-        await tester.pumpAndSettle();
-        await tap(tester, find.byKey(const Key('browser-account-menu')));
-        expect(find.text('更新当前账号').hitTestable(), findsOneWidget);
-        expect(tester.takeException(), isNull);
-      }),
-    );
   }
 
   testWidgets(
@@ -358,47 +156,6 @@ void main() {
       expect(find.byType(CloudFavoritesPage), findsNothing);
     }),
   );
-
-  for (final size in [const Size(393, 864), const Size(1100, 780)]) {
-    testWidgets(
-      'Share link can be starred and reopened from home at $size',
-      (tester) => scenario(tester, (fixture, connector) async {
-        tester.view.devicePixelRatio = 1;
-        tester.view.physicalSize = size;
-        final services = fixture.services;
-        final link = ParsedLink(
-          source: 'fixture share',
-          url: 'https://cloud.189.cn/t/fixture',
-          kind: LinkKind.cloudShare,
-          platform: platform,
-          shareId: 'fixture',
-          passcode: '1234',
-        );
-        final session = await services.cloud.share(link);
-        await fixture.render(tester, session: session);
-        await tap(tester, find.byTooltip('收藏分享链接'));
-        expect(find.byTooltip('取消收藏分享链接'), findsOneWidget);
-        final saved = services.favorites.all.single;
-        expect(saved.isShareLink, isTrue);
-        await tester.pumpWidget(
-          MaterialApp(
-            theme: appTheme(Brightness.light),
-            home: Scaffold(body: ParsePage(services)),
-          ),
-        );
-        await tester.pumpAndSettle();
-        final row = find.byKey(ValueKey('home-favorite-${saved.id}'));
-        await tester.ensureVisible(row);
-        await tap(tester, row);
-        expect(find.byType(BrowserPage), findsOneWidget);
-        expect(connector.shares, hasLength(2));
-        expect(connector.shares.last.$2.passcode, '1234');
-        expect(connector.accountReads.last.$3, 'share-root');
-        await tap(tester, find.byTooltip('取消收藏分享链接'));
-        expect(services.favorites.all, isEmpty);
-      }),
-    );
-  }
 
   testWidgets(
     'Cloud account management opens from the top right menu',

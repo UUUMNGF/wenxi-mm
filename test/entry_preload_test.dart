@@ -239,7 +239,7 @@ void main() {
         find.byType(ParsePage, skipOffstage: false),
       );
       expect(parser.active, isFalse);
-      expect(parser.resourceActive, isTrue);
+      // tab 1 现在是设备互联页，资源页已脱离 tab，不再有 resourceActive 预加载
       expect(api.catalogCalls, hasLength(1));
       expect(hub.refreshPending!.isCompleted, isFalse);
       expect(rules.isCompleted, isFalse);

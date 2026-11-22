@@ -163,7 +163,7 @@ void main() {
       await tester.enterText(find.byKey(const Key('parse-input')), '中文分享口令');
       await tap(tester, find.byKey(const Key('parse-start')));
       expect(http.calls, isEmpty);
-      expect(find.textContaining('口令解析'), findsWidgets);
+      // 口令解析入口卡已从解析页移除，直接 push CloudCommandPage 验证
       unawaited(
         Navigator.of(tester.element(find.byType(ParsePage))).push<void>(
           MaterialPageRoute(
