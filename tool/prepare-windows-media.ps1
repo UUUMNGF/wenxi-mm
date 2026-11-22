@@ -16,13 +16,20 @@ $archives = @(
         Name = 'mpv-dev-x86_64-20241021-git-0f78584.7z'
         SHA256 = 'e23701df0adc1fe57c8ede3ff313513b0b80519870058c2d35ff02754284a007'
         MD5 = '6ecf18e85b093c3f7edb16f3ee6603f3'
-        Url = 'https://gh-proxy.com/https://github.com/media-kit/libmpv-win32-video-cmake/releases/download/20241021/mpv-dev-x86_64-20241021-git-0f78584.7z'
+        # 直连 GitHub 优先（CI 环境可达），gh-proxy 镜像作本机网络回退
+        Urls = @(
+            'https://github.com/media-kit/libmpv-win32-video-cmake/releases/download/20241021/mpv-dev-x86_64-20241021-git-0f78584.7z',
+            'https://gh-proxy.com/https://github.com/media-kit/libmpv-win32-video-cmake/releases/download/20241021/mpv-dev-x86_64-20241021-git-0f78584.7z'
+        )
     },
     @{
         Name = 'ANGLE.7z'
         SHA256 = 'cc5911bb15d596fd5a2b362613ad35b7093b427117269a7359054a65746a5f9a'
         MD5 = 'e866f13e8d552348058afaafe869b1ed'
-        Url = 'https://gh-proxy.com/https://github.com/alexmercerind/flutter-windows-ANGLE-OpenGL-ES/releases/download/v1.0.1/ANGLE.7z'
+        Urls = @(
+            'https://github.com/alexmercerind/flutter-windows-ANGLE-OpenGL-ES/releases/download/v1.0.1/ANGLE.7z',
+            'https://gh-proxy.com/https://github.com/alexmercerind/flutter-windows-ANGLE-OpenGL-ES/releases/download/v1.0.1/ANGLE.7z'
+        )
     }
 )
 foreach ($archive in $archives) {
@@ -41,7 +48,11 @@ foreach ($archive in $archives) {
     if (-not $cached) {
         Write-Host ('Downloading ' + $archive.Name + ' from its pinned mirror...')
         $partialFile = $cachedFile + '.download'
-        & curl.exe --fail --location --silent --show-error --retry 2 --connect-timeout 20 --max-time 180 --output $partialFile $archive.Url
+        foreach ($url in $archive.Urls) {
+            & curl.exe --fail --location --silent --show-error --retry 2 --connect-timeout 20 --max-time 180 --output $partialFile $url
+            if ($LASTEXITCODE -eq 0) { break }
+            Write-Host ('Download failed from ' + $url + ', trying next mirror...')
+        }
         if ($LASTEXITCODE -ne 0) { throw ('Download failed: ' + $archive.Name) }
         if ((Get-FileHash -LiteralPath $partialFile -Algorithm SHA256).Hash -ne $archive.SHA256) {
             throw ('SHA-256 mismatch: ' + $archive.Name)
