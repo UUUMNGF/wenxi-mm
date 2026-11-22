@@ -10,9 +10,12 @@ Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $AarPath = [IO.Path]::GetFullPath($AarPath)
 $WorkDirectory = [IO.Path]::GetFullPath($WorkDirectory)
-$llvmRoot = Join-Path $NdkHome 'toolchains\llvm\prebuilt\windows-x86_64'
-$strip = Join-Path $llvmRoot 'bin\llvm-strip.exe'
-$readelf = Join-Path $llvmRoot 'bin\llvm-readelf.exe'
+$isWindowsHost = [Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT
+$exeSuffix = if ($isWindowsHost) { '.exe' } else { '' }
+$hostTag = if ($isWindowsHost) { 'windows-x86_64' } else { 'linux-x86_64' }
+$llvmRoot = Join-Path $NdkHome ('toolchains/llvm/prebuilt/' + $hostTag)
+$strip = Join-Path $llvmRoot ('bin/llvm-strip' + $exeSuffix)
+$readelf = Join-Path $llvmRoot ('bin/llvm-readelf' + $exeSuffix)
 $notice = Join-Path $llvmRoot 'NOTICE'
 foreach ($required in @($AarPath, $strip, $readelf, $notice)) {
     if (-not (Test-Path -LiteralPath $required -PathType Leaf)) { throw "Missing input: $required" }
@@ -51,7 +54,7 @@ try {
             $abiDirectory = Join-Path $stage $abi
             New-Item -ItemType Directory -Path $abiDirectory | Out-Null
             $runtime = Join-Path $abiDirectory 'libc++_shared.so'
-            Copy-Item -LiteralPath (Join-Path $llvmRoot "sysroot\usr\lib\$($triples[$abi])\libc++_shared.so") -Destination $runtime
+            Copy-Item -LiteralPath (Join-Path $llvmRoot ('sysroot/usr/lib/' + $triples[$abi] + '/libc++_shared.so')) -Destination $runtime
             # Strip the copy; never modify the installed SDK/NDK.
             & $strip '--strip-unneeded' $runtime
             if ($LASTEXITCODE -ne 0) { throw "Stripping $abi C++ runtime failed." }
