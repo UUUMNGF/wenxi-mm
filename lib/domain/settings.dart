@@ -41,7 +41,6 @@ class AppSettings {
     this.glassControls = false,
     this.glassLowPower = false,
     this.background = const BackgroundSettings(),
-    this.hideResourceNavigation = false,
     this.fontScalePercent = 100,
     this.threads = 64,
     this.concurrent = 3,
@@ -66,7 +65,6 @@ class AppSettings {
   final GlassStyle glassStyle;
   final bool glassControls, glassLowPower;
   final BackgroundSettings background;
-  final bool hideResourceNavigation;
   final int fontScalePercent;
   static const minFontScalePercent = 80;
   static const maxFontScalePercent = 180;
@@ -158,7 +156,6 @@ class AppSettings {
     'glassControls': glassControls,
     'glassLowPower': glassLowPower,
     'background': background.toJson(),
-    'hideResourceNavigation': hideResourceNavigation,
     'fontScalePercent': fontScalePercent,
     'threads': threads,
     'concurrent': concurrent,
@@ -193,7 +190,6 @@ class AppSettings {
     glassControls: j.boolean('glassControls'),
     glassLowPower: j.boolean('glassLowPower'),
     background: BackgroundSettings.fromJson(j.obj('background')),
-    hideResourceNavigation: j.boolean('hideResourceNavigation'),
     fontScalePercent: j
         .integer('fontScalePercent', 100)
         .clamp(minFontScalePercent, maxFontScalePercent),

@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'app_switch.dart';
 import '../app_services.dart';
 import '../domain/appearance.dart';
@@ -36,7 +35,6 @@ class _AppearancePageState extends State<AppearancePage> {
         _draft.glassStyle != saved.glassStyle ||
         _draft.glassControls != saved.glassControls ||
         _draft.glassLowPower != saved.glassLowPower ||
-        _draft.hideResourceNavigation != saved.hideResourceNavigation ||
         _draft.background != saved.background;
   }
 
@@ -59,7 +57,6 @@ class _AppearancePageState extends State<AppearancePage> {
           glassControls: _draft.glassControls,
           glassLowPower: _draft.glassLowPower,
           background: _draft.background,
-          hideResourceNavigation: _draft.hideResourceNavigation,
         ),
       );
       if (mounted) message(context, '主题已应用');
@@ -106,35 +103,6 @@ class _AppearancePageState extends State<AppearancePage> {
                 _section('主题配色', _palettes()),
                 const SizedBox(height: 24),
                 _section('玻璃效果', _glassStyles()),
-                const SizedBox(height: 24),
-                _section(
-                  '导航入口',
-                  Material(
-                    color: fill(context),
-                    borderRadius: BorderRadius.circular(16),
-                    clipBehavior: Clip.antiAlias,
-                    child: AppSwitchListTile(
-                      key: const Key('appearance-hide-resource-navigation'),
-                      secondary: SvgPicture.asset(
-                        'assets/navigation/search.svg',
-                        width: 24,
-                        height: 24,
-                        colorFilter: ColorFilter.mode(
-                          themeAccent(context),
-                          BlendMode.srcIn,
-                        ),
-                        excludeFromSemantics: true,
-                      ),
-                      title: const Text('隐藏底栏资源入口'),
-                      subtitle: const Text('隐藏后从解析页的「资源」按钮进入，桌面侧栏同步隐藏。'),
-                      value: _draft.hideResourceNavigation,
-                      onChanged: _saving
-                          ? null
-                          : (value) =>
-                                _update({'hideResourceNavigation': value}),
-                    ),
-                  ),
-                ),
                 const SizedBox(height: 24),
                 Material(
                   color: fill(context),

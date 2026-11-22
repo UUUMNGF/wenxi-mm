@@ -458,7 +458,6 @@ class AppServices extends ChangeNotifier {
   final browserReturn = ValueNotifier<BrowserReturnTarget?>(null);
   final browserReturnNavigation = ValueNotifier<int>(0);
   final _browserReturnCaptures = <Object, BrowserReturnTarget? Function()>{};
-  final resourceNavigation = ValueNotifier<int>(0);
   final lanNavigation = ValueNotifier<int>(0);
   final guestDownloadNotice = ValueNotifier<bool>(false);
 
@@ -523,10 +522,6 @@ class AppServices extends ChangeNotifier {
 
   void unregisterBrowserReturn(Object owner) =>
       _browserReturnCaptures.remove(owner);
-
-  void requestResourceSearch() {
-    if (!_closed) resourceNavigation.value++;
-  }
 
   void requestLanPage() {
     if (!_closed) lanNavigation.value++;
@@ -964,7 +959,6 @@ class AppServices extends ChangeNotifier {
     bool? glassControls,
     bool? glassLowPower,
     BackgroundSettings? background,
-    bool? hideResourceNavigation,
   }) async {
     await store.change((draft) {
       require(['System', 'Light', 'Dark'].contains(mode), '外观模式无效');
@@ -975,7 +969,6 @@ class AppServices extends ChangeNotifier {
         'glassControls': ?glassControls,
         'glassLowPower': ?glassLowPower,
         if (background != null) 'background': background.toJson(),
-        'hideResourceNavigation': ?hideResourceNavigation,
       }).toJson();
     });
     if (background != null) await backgrounds.collectUnused();
@@ -1166,7 +1159,6 @@ class AppServices extends ChangeNotifier {
     browserReturn.dispose();
     browserReturnNavigation.dispose();
     _browserReturnCaptures.clear();
-    resourceNavigation.dispose();
     lanNavigation.dispose();
     transferTab.dispose();
     guestDownloadNotice.dispose();

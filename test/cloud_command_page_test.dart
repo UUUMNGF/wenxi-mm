@@ -164,7 +164,15 @@ void main() {
       await tap(tester, find.byKey(const Key('parse-start')));
       expect(http.calls, isEmpty);
       expect(find.textContaining('口令解析'), findsWidgets);
-      await tap(tester, find.byKey(const Key('parse-command')));
+      unawaited(
+        Navigator.of(tester.element(find.byType(ParsePage))).push<void>(
+          MaterialPageRoute(
+            builder: (_) =>
+                CloudCommandPage(services, initialText: '中文分享口令'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
       expect(find.byType(CloudCommandPage), findsOneWidget);
       expect(
         tester

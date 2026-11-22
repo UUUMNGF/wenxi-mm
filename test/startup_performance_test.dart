@@ -20,7 +20,7 @@ import 'package:asterlink/platform/native_engine.dart' show nativeChannel;
 import 'package:asterlink/ui/cloud_page.dart';
 import 'package:asterlink/ui/mine_page.dart';
 import 'package:asterlink/ui/parse_page.dart';
-import 'package:asterlink/ui/resource_home_page.dart';
+import 'package:asterlink/ui/lan_tab_page.dart';
 import 'package:asterlink/ui/startup_loading_page.dart';
 import 'package:asterlink/ui/transfers_page.dart';
 import 'package:asterlink/upload/upload_manager.dart';
@@ -307,7 +307,7 @@ void main() {
       final parser = tester.state<ParsePageState>(find.byType(ParsePage));
       parser.input.text = 'fixture parser input';
       for (final type in [
-        ResourceHomePage,
+        LanTabPage,
         CloudPage,
         TransfersPage,
         MinePage,
@@ -316,16 +316,14 @@ void main() {
       }
       await tester.tap(find.byKey(const ValueKey('navigation-1')));
       await tester.pump();
-      final resource = tester.state(find.byType(ResourceHomePage));
-      expect(TickerMode.valuesOf(resource.context).enabled, isTrue);
+      expect(find.byType(LanTabPage), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('navigation-3')));
       await tester.pump();
       expect(find.byType(TransfersPage), findsOneWidget);
-      expect(TickerMode.valuesOf(resource.context).enabled, isFalse);
       expect(find.byType(CloudPage, skipOffstage: false), findsNothing);
       await tester.tap(find.byKey(const ValueKey('navigation-1')));
       await tester.pump();
-      expect(tester.state(find.byType(ResourceHomePage)), same(resource));
+      expect(find.byType(LanTabPage), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('navigation-0')));
       await tester.pump();
       expect(

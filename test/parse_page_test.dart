@@ -888,7 +888,7 @@ void main() {
       await tester.tap(find.widgetWithText(ListTile, '子目录'));
       await tester.pumpAndSettle();
       expect(find.text('nested.zip'), findsOneWidget);
-      await tester.tap(find.text('全部文件'));
+      await tester.pageBack();
       await tester.pumpAndSettle();
       await tester.longPress(find.widgetWithText(ListTile, '子目录'));
       await tester.pumpAndSettle();

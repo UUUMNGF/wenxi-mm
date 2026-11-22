@@ -7,7 +7,6 @@ import 'torrent_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../app_services.dart';
 import '../core/json.dart';
 import '../core/operation_progress.dart';
@@ -24,7 +23,6 @@ import '../domain/github.dart';
 import '../domain/models.dart';
 import '../domain/ed2k.dart';
 import '../domain/resource_search.dart';
-import 'cloud_command_page.dart';
 import '../platform/file_access.dart';
 import '../platform/document_actions.dart';
 import 'browser_page.dart';
@@ -1339,86 +1337,6 @@ class ParsePageState extends State<ParsePage> {
     );
   }
 
-  Widget _desktopSupport(BuildContext context) => _card(
-    context,
-    desktop: true,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '支持的网盘',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 20),
-        LayoutBuilder(
-          builder: (context, bounds) => Wrap(
-            spacing: 12,
-            runSpacing: 16,
-            children: [
-              for (final platform in const [
-                CloudPlatform.quark,
-                CloudPlatform.baidu,
-                CloudPlatform.uc,
-                CloudPlatform.xunlei,
-                CloudPlatform.tianyi,
-                CloudPlatform.c139,
-                CloudPlatform.pan123,
-                CloudPlatform.guangya,
-                CloudPlatform.aliyun,
-                CloudPlatform.lanzou,
-              ])
-                SizedBox(
-                  width: MediaQuery.textScalerOf(context).scale(13) > 20
-                      ? bounds.maxWidth
-                      : (bounds.maxWidth - 12) / 2,
-                  child: Row(
-                    children: [
-                      PlatformMark(platform: platform, size: 22),
-                      const SizedBox(width: 9),
-                      Expanded(
-                        child: Text(
-                          platform == CloudPlatform.c139
-                              ? '移动'
-                              : platform.shortName,
-                          style: const TextStyle(fontSize: 13),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 18),
-        Text(
-          '蓝奏云支持不登录解析',
-          style: TextStyle(
-            fontSize: 11,
-            height: 1.6,
-            color: secondary(context),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Divider(height: 1, color: border(context)),
-        ),
-        const Text(
-          '其他链接',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'HTTP / HTTPS 与 ED2K 文件\n磁力链接与 BT 种子',
-          style: TextStyle(
-            fontSize: 12,
-            height: 1.8,
-            color: secondary(context),
-          ),
-        ),
-      ],
-    ),
-  );
-
   @override
   Widget build(BuildContext context) {
     final link = current;
@@ -1452,29 +1370,6 @@ class ParsePageState extends State<ParsePage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _inputHeader(context, recognition, desktop: desktop),
-                if (widget.services.settings.hideResourceNavigation)
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      key: const Key('parse-resources'),
-                      onPressed: working
-                          ? null
-                          : widget.services.requestResourceSearch,
-                      icon: SvgPicture.asset(
-                        'assets/navigation/search.svg',
-                        width: 19,
-                        height: 19,
-                        colorFilter: ColorFilter.mode(
-                          working
-                              ? Theme.of(context).disabledColor
-                              : themeAccent(context),
-                          BlendMode.srcIn,
-                        ),
-                        excludeFromSemantics: true,
-                      ),
-                      label: const Text('资源'),
-                    ),
-                  ),
                 SizedBox(height: desktop ? 22 : 23),
                 TextField(
                   key: const Key('parse-input'),
@@ -1665,95 +1560,37 @@ class ParsePageState extends State<ParsePage> {
               ],
             ),
           );
-          final parseTools = Column(
-            children: [
-              form,
-              const SizedBox(height: 18),
-              _card(
-                context,
-                desktop: desktop,
-                padding: EdgeInsets.zero,
-                child: ListTile(
-                  key: const Key('parse-command'),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 5,
-                  ),
-                  leading: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: themeAccent(context).withValues(alpha: .10),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.document_scanner_outlined,
-                      color: themeAccent(context),
-                    ),
-                  ),
-                  title: const Text(
-                    '口令解析',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                  ),
-                  subtitle: const Text(
-                    '夸克 · 迅雷 · UC · 移动',
-                    style: TextStyle(fontSize: 12),
-                  ),
-                  trailing: const Icon(CupertinoIcons.chevron_right, size: 17),
-                  onTap: working
-                      ? null
-                      : () => Navigator.push<void>(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => CloudCommandPage(
-                              widget.services,
-                              initialText: links.isEmpty ? input.text : '',
-                            ),
-                          ),
-                        ),
-                ),
+          final parseTools = form;
+          final lan = _card(
+            context,
+            desktop: desktop,
+            padding: EdgeInsets.zero,
+            child: ListTile(
+              key: const Key('parse-device-link-card'),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 18,
+                vertical: 5,
               ),
-            ],
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: themeAccent(context).withValues(alpha: .10),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.devices_rounded, color: themeAccent(context)),
+              ),
+              title: const Text(
+                '设备互联',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              ),
+              subtitle: const Text(
+                '局域网互传文字与文件',
+                style: TextStyle(fontSize: 12),
+              ),
+              trailing: const Icon(CupertinoIcons.chevron_right, size: 17),
+              onTap: working ? null : widget.services.requestLanPage,
+            ),
           );
-          final support = desktop
-              ? _desktopSupport(context)
-              : _card(
-                  context,
-                  padding: const EdgeInsets.all(18),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        CupertinoIcons.checkmark_seal_fill,
-                        size: 25,
-                        color: themeAccent(context),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              '支持类型',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 9),
-                            Text(
-                              '${CloudPlatform.values.where((platform) => platform.supportsShareParsing).map((platform) => platform.label).join('、')}；支持带提取码文本、HTTP 文件、磁力链接、BT 种子和 ED2K 文件链接。',
-                              style: TextStyle(
-                                fontSize: 14,
-                                height: 1.6,
-                                color: secondary(context),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
           final favorites = _card(
             context,
             desktop: desktop,
@@ -1801,7 +1638,7 @@ class ParsePageState extends State<ParsePage> {
                             const SizedBox(height: 18),
                             recent,
                             const SizedBox(height: 18),
-                            support,
+                            lan,
                           ],
                         ),
                       ),
@@ -1826,7 +1663,7 @@ class ParsePageState extends State<ParsePage> {
                     recent,
                   ],
                   const SizedBox(height: 18),
-                  support,
+                  lan,
                 ],
               ],
             );
@@ -1846,7 +1683,7 @@ class ParsePageState extends State<ParsePage> {
               const SizedBox(height: 18),
               recent,
               const SizedBox(height: 18),
-              support,
+              lan,
             ],
           );
         },

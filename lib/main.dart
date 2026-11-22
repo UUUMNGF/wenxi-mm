@@ -32,7 +32,7 @@ import 'ui/transfers_page.dart';
 import 'ui/mine_page.dart';
 import 'ui/parse_page.dart';
 import 'ui/browser_page.dart';
-import 'ui/resource_home_page.dart';
+import 'ui/lan_tab_page.dart';
 import 'ui/search_security_dialog.dart';
 import 'ui/announcements_page.dart';
 import 'ui/device_link_page.dart';
@@ -292,10 +292,8 @@ class _MainShellState extends State<MainShell>
   bool _openingExternal = false, _externalScheduled = false;
   bool _openingLan = false;
   bool _usingClipboard = false;
-  late bool _hideResourceNavigation =
-      widget.services.settings.hideResourceNavigation;
   double _pageSwipeDistance = 0;
-  static const titles = ['分享解析', '资源', '网盘列表', '传输管理', '我的'];
+  static const titles = ['分享解析', '互联', '网盘列表', '传输管理', '我的'];
 
   Widget _retainedTab(int index, Widget Function() builder) {
     if (index == selected) _visitedTabs.add(index);
@@ -305,17 +303,7 @@ class _MainShellState extends State<MainShell>
     );
   }
 
-  List<int> get _navigationTabs =>
-      AppNavigation.visibleIndices(hideResources: _hideResourceNavigation);
-
-  bool get _hiddenResourcePage => _hideResourceNavigation && selected == 1;
-
-  void _navigationSettingsChanged() {
-    final hidden = widget.services.settings.hideResourceNavigation;
-    if (mounted && hidden != _hideResourceNavigation) {
-      setState(() => _hideResourceNavigation = hidden);
-    }
-  }
+  List<int> get _navigationTabs => AppNavigation.visibleIndices();
 
   void _selectTab(int index) {
     if (index == selected) return;
@@ -323,7 +311,7 @@ class _MainShellState extends State<MainShell>
     DiagnosticLog.event(
       'ui.tab',
       fields: {
-        'tab': ['parse', 'resources', 'cloud', 'downloads', 'mine'][index],
+        'tab': ['parse', 'lan', 'cloud', 'downloads', 'mine'][index],
       },
     );
     setState(() => selected = index);
@@ -355,11 +343,9 @@ class _MainShellState extends State<MainShell>
   void initState() {
     super.initState();
     widget.services.sharedText.addListener(_shared);
-    widget.services.store.addListener(_navigationSettingsChanged);
     if (widget.services.downloadNavigation.value > 0) selected = 3;
     widget.services.downloadNavigation.addListener(_showDownloads);
     widget.services.browserReturnNavigation.addListener(_returnToBrowser);
-    widget.services.resourceNavigation.addListener(_showResources);
     widget.services.lanNavigation.addListener(_showLan);
     widget.services.transferTab.addListener(_transferTabChanged);
     widget.services.externalOpens.addListener(_externalAvailable);
@@ -584,13 +570,6 @@ class _MainShellState extends State<MainShell>
     }
   }
 
-  void _showResources() {
-    if (!mounted) return;
-    Navigator.of(context).popUntil((route) => route.isFirst);
-    setState(() => selected = 1);
-    DiagnosticLog.event('ui.tab', fields: {'tab': 'resources'});
-  }
-
   void _showLan() => unawaited(_openLan());
 
   Future<void> _openLan() async {
@@ -770,10 +749,8 @@ class _MainShellState extends State<MainShell>
   @override
   void dispose() {
     widget.services.sharedText.removeListener(_shared);
-    widget.services.store.removeListener(_navigationSettingsChanged);
     widget.services.downloadNavigation.removeListener(_showDownloads);
     widget.services.browserReturnNavigation.removeListener(_returnToBrowser);
-    widget.services.resourceNavigation.removeListener(_showResources);
     widget.services.lanNavigation.removeListener(_showLan);
     widget.services.transferTab.removeListener(_transferTabChanged);
     widget.services.externalOpens.removeListener(_externalAvailable);
@@ -1014,7 +991,6 @@ class _MainShellState extends State<MainShell>
   Widget _navigation(BuildContext context, {required bool rail}) =>
       AppNavigation(
         selectedIndex: selected,
-        hideResources: _hideResourceNavigation,
         transfers: widget.services.navigationTransfers,
         rail: rail,
         onSelected: _selectTab,
@@ -1062,37 +1038,11 @@ class _MainShellState extends State<MainShell>
                       : const Color(0xfff7f8fb),
                   appBar: AppBar(
                     backgroundColor: backgroundSurface(context),
-                    leading: _hiddenResourcePage
-                        ? BackButton(
-                            key: const Key('resource-back-to-parse'),
-                            onPressed: () => _selectTab(0),
-                          )
-                        : null,
                     title: Text(titles[selected]),
                     centerTitle: desktopHeader ? false : null,
                     titleSpacing: desktopHeader ? 28 : null,
                     toolbarHeight: desktopHeader ? 52 : null,
                     actions: [
-                      if (selected == 0)
-                        AnimatedBuilder(
-                          animation: widget.services.lan,
-                          builder: (context, _) => Tooltip(
-                            message: '设备互联',
-                            child: TextButton.icon(
-                              key: const Key('parse-device-link'),
-                              onPressed: _showLan,
-                              icon: Badge.count(
-                                count: widget.services.lan.unread,
-                                isLabelVisible: widget.services.lan.unread > 0,
-                                child: const Icon(
-                                  Icons.devices_rounded,
-                                  size: 21,
-                                ),
-                              ),
-                              label: const Text('互联'),
-                            ),
-                          ),
-                        ),
                       if (selected != 1)
                         Padding(
                           padding: const EdgeInsets.only(right: 8),
@@ -1164,20 +1114,14 @@ class _MainShellState extends State<MainShell>
                                         widget.services,
                                         key: parseKey,
                                         active: selected == 0,
-                                        resourceActive: selected == 1,
                                       ),
                                     ),
                                     _retainedTab(
                                       1,
-                                      () => ResourceHomePage(
+                                      () => LanTabPage(
                                         widget.services,
                                         active: selected == 1,
-                                        onOpen: (hit) async {
-                                          final parser = parseKey.currentState;
-                                          if (parser != null) {
-                                            await parser.openResource(hit);
-                                          }
-                                        },
+                                        onOpen: _showLan,
                                       ),
                                     ),
                                     _retainedTab(
@@ -1222,10 +1166,7 @@ class _MainShellState extends State<MainShell>
                 );
                 return DesktopMouseBack(
                   child: PopScope(
-                    canPop: !_hiddenResourcePage,
-                    onPopInvokedWithResult: (didPop, _) {
-                      if (!didPop && _hiddenResourcePage) _selectTab(0);
-                    },
+                    canPop: true,
                     child: rail
                         ? Row(
                             children: [

@@ -148,7 +148,7 @@ void main() {
                 .hitTestable(),
             findsOneWidget,
           );
-          await tester.tap(find.widgetWithText(TextButton, '全部文件'));
+          await tester.pageBack();
           await settle(tester);
           expect(controller(tester).offset, closeTo(rootOffset, .01));
           final restored = find.descendant(

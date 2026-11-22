@@ -30,7 +30,7 @@ import 'uc_tv_authorization_page.dart';
 import 'uc_video_download.dart';
 import 'text_preview.dart';
 
-enum _DownloadHelpAction { announcements, resources }
+enum _DownloadHelpAction { announcements }
 
 class DownloadsPage extends StatefulWidget {
   const DownloadsPage(
@@ -388,7 +388,7 @@ class _DownloadsPageState extends State<DownloadsPage>
       builder: (dialogContext) => AlertDialog(
         title: const Text('无法下载？'),
         scrollable: true,
-        content: const Text('下载失败时，可查看 App 公告寻找解决办法，或使用「查找资源」功能更换网盘资源。'),
+        content: const Text('下载失败时，可查看 App 公告寻找解决办法。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
@@ -402,13 +402,6 @@ class _DownloadsPageState extends State<DownloadsPage>
             icon: const Icon(CupertinoIcons.bell, size: 18),
             label: const Text('查看公告'),
           ),
-          FilledButton.icon(
-            key: const Key('download-help-resources'),
-            onPressed: () =>
-                Navigator.of(dialogContext).pop(_DownloadHelpAction.resources),
-            icon: const Icon(CupertinoIcons.search, size: 18),
-            label: const Text('查找资源'),
-          ),
         ],
       ),
     );
@@ -421,8 +414,6 @@ class _DownloadsPageState extends State<DownloadsPage>
             builder: (_) => AnnouncementsPage(widget.services.announcements),
           ),
         );
-      case _DownloadHelpAction.resources:
-        widget.services.requestResourceSearch();
       case null:
         break;
     }

@@ -579,9 +579,9 @@ void main() {
       try {
         await render(tester, shell: true, platform: TargetPlatform.windows);
         expect(lan.starts, 0);
-        final entry = find.byKey(const Key('parse-device-link'));
+        final entry = find.byKey(const Key('parse-device-link-card'));
         expect(entry, findsOneWidget);
-        expect(tester.getCenter(entry).dx, greaterThan(250));
+        await tester.ensureVisible(entry);
         await tester.tap(entry);
         await tester.pumpAndSettle();
         expect(find.byType(DeviceLinkPage), findsOneWidget);
@@ -606,7 +606,8 @@ void main() {
     (tester) async {
       try {
         await render(tester, shell: true, size: const Size(1080, 760));
-        await tester.tap(find.byKey(const Key('parse-device-link')));
+        await tester.ensureVisible(find.byKey(const Key('parse-device-link-card')));
+        await tester.tap(find.byKey(const Key('parse-device-link-card')));
         await tester.pumpAndSettle();
         expect(lan.starts, 0);
         expect(lan.running, isFalse);
@@ -617,7 +618,8 @@ void main() {
         expect(lan.running, isTrue);
         await tester.pageBack();
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('parse-device-link')));
+        await tester.ensureVisible(find.byKey(const Key('parse-device-link-card')));
+        await tester.tap(find.byKey(const Key('parse-device-link-card')));
         await tester.pumpAndSettle();
         expect(lan.starts, 1);
         expect(find.byKey(const Key('lan-local-code')), findsOneWidget);
@@ -625,7 +627,8 @@ void main() {
         await tester.pumpAndSettle();
         await tester.pageBack();
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('parse-device-link')));
+        await tester.ensureVisible(find.byKey(const Key('parse-device-link-card')));
+        await tester.tap(find.byKey(const Key('parse-device-link-card')));
         await tester.pumpAndSettle();
         expect(lan.running, isFalse);
         expect(lan.starts, 1);
@@ -758,7 +761,8 @@ void main() {
     (tester) async {
       try {
         await render(tester, shell: true, textInbox: true, messageText: _link);
-        await tester.tap(find.byKey(const Key('parse-device-link')));
+        await tester.ensureVisible(find.byKey(const Key('parse-device-link-card')));
+        await tester.tap(find.byKey(const Key('parse-device-link-card')));
         await tester.pumpAndSettle();
         await tapText(tester, '收件箱 1');
         await tapText(tester, '查看消息');
@@ -782,7 +786,8 @@ void main() {
         await render(tester, shell: true, inbox: true);
         expect(connector.links, isEmpty);
         expect(lan.unread, 1);
-        await tester.tap(find.byKey(const Key('parse-device-link')));
+        await tester.ensureVisible(find.byKey(const Key('parse-device-link-card')));
+        await tester.tap(find.byKey(const Key('parse-device-link-card')));
         await tester.pumpAndSettle();
         await tapText(tester, '收件箱 1');
         await tapText(tester, '解析链接');
@@ -998,7 +1003,8 @@ void main() {
       try {
         await render(tester, shell: true);
         final shared = await lan.createShare(const LanFileSelection([]));
-        await tester.tap(find.byKey(const Key('parse-device-link')));
+        await tester.ensureVisible(find.byKey(const Key('parse-device-link-card')));
+        await tester.tap(find.byKey(const Key('parse-device-link-card')));
         await tester.pumpAndSettle();
         await tapText(tester, '打开分享链接');
         await tester.enterText(

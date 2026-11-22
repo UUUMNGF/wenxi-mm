@@ -236,7 +236,6 @@ void main() {
           theme: 'Dark',
           themePalette: AppPalette.rose,
           glassStyle: GlassStyle.frosted,
-          hideResourceNavigation: true,
           threads: 8,
         ),
       );
@@ -252,58 +251,10 @@ void main() {
       expect(services.settings.theme, 'System');
       expect(services.settings.themePalette, AppPalette.blue);
       expect(services.settings.glassStyle, GlassStyle.clear);
-      expect(services.settings.hideResourceNavigation, isFalse);
       expect(services.settings.threads, 8);
       expect(tester.takeException(), isNull);
     },
   );
-
-  testWidgets('resource navigation can be previewed, saved and restored', (
-    tester,
-  ) async {
-    final services = await render(tester);
-    expect(services.settings.hideResourceNavigation, isFalse);
-    await tap(tester, 'appearance-hide-resource-navigation');
-    expect(services.settings.hideResourceNavigation, isFalse);
-    final preview = find.byKey(const Key('appearance-preview'));
-    expect(
-      tester
-          .widget<AppNavigation>(
-            find.descendant(of: preview, matching: find.byType(AppNavigation)),
-          )
-          .hideResources,
-      isTrue,
-    );
-    expect(
-      find.byKey(const Key('appearance-preview-resources')),
-      findsOneWidget,
-    );
-    expect(find.byKey(const ValueKey('navigation-1')), findsNothing);
-    await apply(tester);
-    expect(services.settings.hideResourceNavigation, isTrue);
-    await tester.tap(find.byType(BackButton));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('navigation-1')), findsNothing);
-    await tester.tap(find.byKey(const ValueKey('navigation-0')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('parse-resources')), findsOneWidget);
-    expect(find.text('更新来源'), findsNothing);
-
-    await tester.tap(find.byKey(const ValueKey('navigation-4')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('主题与外观'));
-    await tester.pumpAndSettle();
-    await tap(tester, 'appearance-hide-resource-navigation');
-    await apply(tester);
-    expect(services.settings.hideResourceNavigation, isFalse);
-    await tester.tap(find.byType(BackButton));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('navigation-1')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('navigation-0')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('parse-resources')), findsNothing);
-    expect(tester.takeException(), isNull);
-  });
 
   testWidgets('system mode and solid navigation update without changing tabs', (
     tester,

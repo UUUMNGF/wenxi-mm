@@ -52,7 +52,6 @@ void main() {
         expect(settings.glassStyle, GlassStyle.clear);
         expect(settings.glassControls, isFalse);
         expect(settings.glassLowPower, isFalse);
-        expect(settings.hideResourceNavigation, isFalse);
         expect(settings.threads, 16);
       }
       final unknown = AppSettings.fromJson({
@@ -127,7 +126,6 @@ void main() {
         mode: 'Dark',
         palette: AppPalette.mint,
         glassStyle: GlassStyle.frosted,
-        hideResourceNavigation: true,
         glassControls: true,
         glassLowPower: true,
       );
@@ -147,7 +145,6 @@ void main() {
       expect(persisted.glassStyle, GlassStyle.frosted);
       expect(persisted.glassControls, isTrue);
       expect(persisted.glassLowPower, isTrue);
-      expect(persisted.hideResourceNavigation, isTrue);
       final target = StateStore.memory();
       await BackupRepository(target).restore(backup, 'theme-test-password');
       final restored = AppSettings.fromJson(target.data.obj('settings'));
@@ -155,7 +152,6 @@ void main() {
       expect(restored.glassStyle, GlassStyle.frosted);
       expect(restored.glassControls, isTrue);
       expect(restored.glassLowPower, isTrue);
-      expect(restored.hideResourceNavigation, isTrue);
       expect(restored.threads, 16);
       expect(restored.destination, isNull);
       await services.close();

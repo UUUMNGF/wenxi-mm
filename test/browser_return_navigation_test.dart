@@ -91,7 +91,7 @@ void main() {
           await tester.pumpAndSettle();
           final before = tester.widget<ListView>(list).controller!.offset;
           expect(before, greaterThan(0));
-          await tester.tap(find.byKey(const Key('browser-download-manager')));
+          fixture.services.requestDownloadManager();
           await tester.pumpAndSettle();
           expect(find.byType(TransfersPage), findsOneWidget);
           final shortcut = find.byKey(const Key('transfer-return-browser'));
@@ -117,7 +117,7 @@ void main() {
               tester.widget<ListView>(resumedList).controller!.offset,
               closeTo(before, .01),
             );
-            await tester.tap(find.byKey(const Key('browser-download-manager')));
+            fixture.services.requestDownloadManager();
             await tester.pumpAndSettle();
             expect(shortcut.hitTestable(), findsOneWidget);
           }

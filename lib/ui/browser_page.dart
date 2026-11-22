@@ -38,7 +38,6 @@ import '../upload/upload_task.dart';
 import '../upload/upload_folder.dart';
 import 'login_page.dart';
 import 'preview_page.dart';
-import 'cloud_favorites_page.dart';
 import 'loading_indicator.dart';
 import 'skeleton_loading.dart';
 import 'cloud_upload_drop_target.dart';
@@ -2887,10 +2886,9 @@ class _BrowserPageState extends State<BrowserPage> {
     padding: const EdgeInsets.fromLTRB(16, 0, 8, 10),
     child: LayoutBuilder(
       builder: (context, constraints) {
-        final field =
-            !widget.picking && highlight == null && search.text.isEmpty
-            ? CloudSearchEntry(onTap: changingAccount ? null : _openSearch)
-            : TextField(
+        final filtering =
+            widget.picking || highlight != null || search.text.isNotEmpty;
+        final field = TextField(
                 key: const Key('browser-search-input'),
                 controller: search,
                 textInputAction: TextInputAction.search,
@@ -2944,6 +2942,40 @@ class _BrowserPageState extends State<BrowserPage> {
                   isDense: true,
                 ),
               );
+        final miniSearch = Material(
+          color: fill(context),
+          borderRadius: BorderRadius.circular(11),
+          child: InkWell(
+            key: const Key('browser-search-entry'),
+            onTap: changingAccount ? null : _openSearch,
+            borderRadius: BorderRadius.circular(11),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    CupertinoIcons.search,
+                    size: 15,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      '搜索网盘文件',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
         final controls = Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -3027,18 +3059,28 @@ class _BrowserPageState extends State<BrowserPage> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              field,
-              const SizedBox(height: 4),
+              if (filtering) ...[
+                field,
+                const SizedBox(height: 4),
+              ],
               Row(
                 children: [
-                  Expanded(
-                    child: Text(
-                      '${files.length} 项',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12, color: secondary(context)),
-                    ),
+                  Text(
+                    '${files.length} 项',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: secondary(context)),
                   ),
+                  const SizedBox(width: 10),
+                  if (!filtering)
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: miniSearch,
+                      ),
+                    )
+                  else
+                    const Spacer(),
                   controls,
                 ],
               ),
@@ -3047,8 +3089,9 @@ class _BrowserPageState extends State<BrowserPage> {
         }
         return Row(
           children: [
-            Expanded(child: field),
-            const SizedBox(width: 8),
+            if (filtering)
+              Expanded(child: field)
+            else ...[miniSearch, const Spacer()],
             controls,
           ],
         );
@@ -3542,69 +3585,6 @@ class _BrowserPageState extends State<BrowserPage> {
             ? '选择目标文件夹'
             : session.title.ifEmpty(session.platform.label),
         actions: [
-          if (!widget.picking)
-            IconButton(
-              key: const Key('browser-download-manager'),
-              tooltip: '下载管理',
-              onPressed: _openDownloadManager,
-              icon: const Icon(CupertinoIcons.arrow_down_circle, size: 21),
-            ),
-          if (!widget.picking &&
-              session.mode == BrowseMode.share &&
-              session.sourceLink != null)
-            AnimatedBuilder(
-              animation: widget.services.store,
-              builder: (context, _) {
-                final saved = widget.services.favorites.containsShare(session);
-                return IconButton(
-                  key: const Key('browser-favorite-share'),
-                  tooltip: saved ? '取消收藏分享链接' : '收藏分享链接',
-                  icon: Icon(
-                    saved ? CupertinoIcons.star_fill : CupertinoIcons.star,
-                    color: saved ? const Color(0xffe6a23c) : null,
-                    size: 21,
-                  ),
-                  onPressed: () async {
-                    final result = await busy(
-                      context,
-                      () => widget.services.favorites.toggleShare(session),
-                    );
-                    if (!context.mounted || result == null) return;
-                    message(
-                      context,
-                      result ? '分享链接已收藏，可从首页网盘收藏打开' : '已取消收藏分享链接',
-                    );
-                  },
-                );
-              },
-            ),
-          if (!widget.picking)
-            IconButton(
-              tooltip: '网盘收藏',
-              icon: Icon(
-                session.mode == BrowseMode.share
-                    ? CupertinoIcons.square_list
-                    : CupertinoIcons.star,
-                size: 21,
-              ),
-              onPressed: () => Navigator.push<void>(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CloudFavoritesPage(
-                    widget.services,
-                    platform: session.platform,
-                    accountId: session.accountId,
-                  ),
-                ),
-              ),
-            ),
-          if (!widget.picking && session.platform.requiresAccount)
-            _accountMenu(),
-          IconButton(
-            tooltip: '刷新文件',
-            onPressed: loading || changingAccount ? null : _refresh,
-            icon: const Icon(CupertinoIcons.arrow_clockwise, size: 20),
-          ),
           if (_canUpload || _canCreateFolder)
             if (widget.picking && _canCreateFolder)
               IconButton(
@@ -3730,35 +3710,6 @@ class _BrowserPageState extends State<BrowserPage> {
                         ),
                       ),
                     ),
-                  SizedBox(
-                    height: 42,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      children: [
-                        for (var i = 0; i < stack.length; i++)
-                          Row(
-                            children: [
-                              if (i > 0)
-                                Icon(
-                                  CupertinoIcons.chevron_right,
-                                  size: 11,
-                                  color: secondary(context),
-                                ),
-                              TextButton(
-                                onPressed: i == stack.length - 1
-                                    ? null
-                                    : () => _returnToDirectory(i),
-                                child: Text(
-                                  stack[i].$2,
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                              ),
-                            ],
-                          ),
-                      ],
-                    ),
-                  ),
                   _browserToolbar(files),
                   if (_hasMore)
                     Padding(

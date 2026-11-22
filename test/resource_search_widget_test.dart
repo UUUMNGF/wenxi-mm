@@ -138,7 +138,6 @@ void main() {
     bool populated = false,
     bool root = false,
     int initialTab = 1,
-    bool hideResourceNavigation = false,
     bool home = false,
     double scale = 1,
     double bottomInset = 0,
@@ -178,7 +177,6 @@ void main() {
       'settings': AppSettings(
         themePalette: palette,
         background: BackgroundSettings(day: picture),
-        hideResourceNavigation: hideResourceNavigation,
       ).toJson(),
     });
     final api = SearchApiFixture(
@@ -563,7 +561,6 @@ void main() {
     (tester) async {
       final (services, api) = await render(tester, root: true, initialTab: 0);
       expect(find.byKey(const ValueKey('navigation-1')), findsOneWidget);
-      expect(find.byKey(const Key('parse-resources')), findsNothing);
       expect(find.text('更新来源'), findsNothing);
       expect(services.resourceSearch.catalogLoaded, isTrue);
       expect(services.resourceSearch.recommendationsLoaded, isTrue);
@@ -578,94 +575,6 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
-
-  testWidgets(
-    'hidden resource entry preserves search and parser back navigation',
-    (tester) async {
-      await render(
-        tester,
-        root: true,
-        initialTab: 0,
-        hideResourceNavigation: true,
-      );
-      final input = find.byKey(const Key('parse-input'));
-      await tester.enterText(input, 'https://pan.quark.cn/s/keepinput');
-      await tester.pumpAndSettle();
-      expect(find.text('更新来源'), findsNothing);
-      expect(find.byKey(const ValueKey('navigation-1')), findsNothing);
-      await tester.tap(find.byKey(const Key('parse-resources')));
-      await tester.pumpAndSettle();
-      expect(find.byType(ResourceHomePage), findsOneWidget);
-      expect(find.byKey(const Key('resource-back-to-parse')), findsOneWidget);
-      await tester.enterText(
-        find.byKey(const Key('resource-home-search-input')),
-        'Python',
-      );
-      await tester.tap(find.byKey(const Key('resource-home-search-submit')));
-      await tester.pumpAndSettle();
-      expect(find.byType(ResourceSearchPage), findsOneWidget);
-      expect(await tester.binding.handlePopRoute(), isTrue);
-      await tester.pumpAndSettle();
-      expect(find.byType(ResourceHomePage), findsOneWidget);
-      expect(await tester.binding.handlePopRoute(), isTrue);
-      await tester.pumpAndSettle();
-      expect(
-        tester.widget<TextField>(input).controller!.text,
-        'https://pan.quark.cn/s/keepinput',
-      );
-      await tester.tap(find.byKey(const Key('parse-resources')));
-      await tester.pumpAndSettle();
-      expect(
-        tester
-            .widget<TextField>(
-              find.byKey(const Key('resource-home-search-input')),
-            )
-            .controller!
-            .text,
-        'Python',
-      );
-      await tester.tap(find.byKey(const ValueKey('navigation-0')));
-      await tester.pumpAndSettle();
-      expect(input, findsOneWidget);
-      await tester.tap(find.byKey(const Key('parse-resources')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('resource-back-to-parse')));
-      await tester.pumpAndSettle();
-      expect(input, findsOneWidget);
-      expect(tester.takeException(), isNull);
-    },
-  );
-
-  testWidgets('swiping skips resources after its navigation entry is hidden', (
-    tester,
-  ) async {
-    await render(
-      tester,
-      root: true,
-      initialTab: 0,
-      hideResourceNavigation: true,
-    );
-    for (final (dx, page) in [
-      (-220.0, 2),
-      (-220.0, 3),
-      (-220.0, 4),
-      (220.0, 3),
-      (220.0, 2),
-      (220.0, 0),
-    ]) {
-      await tester.drag(
-        find.byKey(const Key('main-page-swipe-area')),
-        Offset(dx, 0),
-      );
-      await tester.pumpAndSettle();
-      expect(
-        tester.widget<AppNavigation>(find.byType(AppNavigation)).selectedIndex,
-        page,
-      );
-    }
-    expect(find.byKey(const ValueKey('navigation-1')), findsNothing);
-    expect(tester.takeException(), isNull);
-  });
 
   testWidgets(
     'vertical scrolling and small horizontal drags keep the current tab',

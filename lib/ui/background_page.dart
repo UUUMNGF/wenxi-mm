@@ -102,7 +102,6 @@ class _BackgroundPageState extends State<BackgroundPage> {
         glassControls: _draft.glassControls,
         glassLowPower: _draft.glassLowPower,
         background: background,
-        hideResourceNavigation: _draft.hideResourceNavigation,
       );
       if (mounted) Navigator.pop(context, _draft);
     } catch (error) {

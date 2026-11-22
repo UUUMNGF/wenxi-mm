@@ -1,13 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../data/backgrounds.dart';
 import '../domain/settings.dart';
 import 'app_background.dart';
 import 'app_navigation.dart';
 import 'app_theme.dart';
 import 'liquid_glass.dart';
-import 'resource_search_bar.dart';
 
 class AppearancePreview extends StatefulWidget {
   const AppearancePreview({
@@ -119,28 +117,6 @@ class _AppearancePreviewState extends State<AppearancePreview> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                if (settings.hideResourceNavigation)
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: TextButton.icon(
-                                      key: const Key(
-                                        'appearance-preview-resources',
-                                      ),
-                                      onPressed: () =>
-                                          setState(() => selected = 1),
-                                      icon: SvgPicture.asset(
-                                        'assets/navigation/search.svg',
-                                        width: 17,
-                                        height: 17,
-                                        colorFilter: ColorFilter.mode(
-                                          colors.primary,
-                                          BlendMode.srcIn,
-                                        ),
-                                        excludeFromSemantics: true,
-                                      ),
-                                      label: const Text('资源'),
-                                    ),
-                                  ),
                                 Text(
                                   '粘贴网盘分享链接',
                                   style: TextStyle(
@@ -153,7 +129,7 @@ class _AppearancePreviewState extends State<AppearancePreview> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                           child: LiquidGlassButton(
                             onPressed: () {},
                             child: const Text(
@@ -161,25 +137,6 @@ class _AppearancePreviewState extends State<AppearancePreview> {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                          child: ResourceSearchBar(
-                            buttonKey: const Key('appearance-preview-search'),
-                            onPressed: () => setState(() => selected = 1),
-                            field: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                              ),
-                              child: Text(
-                                '搜索资源',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: colors.onSurfaceVariant,
-                                ),
                               ),
                             ),
                           ),
@@ -273,8 +230,6 @@ class _AppearancePreviewState extends State<AppearancePreview> {
                                 removeBottom: true,
                                 child: AppNavigation(
                                   selectedIndex: selected,
-                                  hideResources:
-                                      settings.hideResourceNavigation,
                                   onSelected: (index) =>
                                       setState(() => selected = index),
                                 ),
@@ -289,7 +244,6 @@ class _AppearancePreviewState extends State<AppearancePreview> {
                               AppNavigation(
                                 rail: true,
                                 selectedIndex: selected,
-                                hideResources: settings.hideResourceNavigation,
                                 onSelected: (index) =>
                                     setState(() => selected = index),
                               ),
