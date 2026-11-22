@@ -439,7 +439,7 @@ void main() {
     testWidgets(
       '$name layout and reference snapshot',
       // 解析页改版后截图内容变化，金片待重新生成
-      skip: name.contains('parse') ? '解析页改版后金片待重新生成' : null,
+      skip: name.contains('parse'),
       (tester) async {
       if (name.startsWith('desktop-parse') || name == 'desktop-mine') {
         debugDefaultTargetPlatformOverride = TargetPlatform.windows;

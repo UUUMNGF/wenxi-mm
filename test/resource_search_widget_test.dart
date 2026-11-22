@@ -424,7 +424,7 @@ void main() {
     testWidgets(
       'resource center $name layout',
       // 资源页脱离 tab 后布局坐标变化，金片待重新生成
-      skip: '资源页脱离 tab 后金片待重新生成',
+      skip: true,
       (tester) async {
       await render(
         tester,
@@ -463,7 +463,7 @@ void main() {
     testWidgets(
       'last catalog title clears floating navigation on $name',
       // 资源页脱离 tab 后浮动导航不再覆盖资源页，避让断言与金片待重建
-      skip: '资源页脱离 tab 后金片与避让断言待重新生成',
+      skip: true,
       (tester) async {
       ResourceSearchHit card(int n) => ResourceSearchHit.fromRaw({
         'title': '推荐学习资源 $n',
@@ -624,7 +624,7 @@ void main() {
     testWidgets(
       'resource home follows the app theme and $name',
       // 资源页脱离 tab 后布局坐标变化，金片待重新生成
-      skip: '资源页脱离 tab 后金片待重新生成',
+      skip: true,
       (tester) async {
       await render(
         tester,
