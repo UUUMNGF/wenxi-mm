@@ -293,7 +293,7 @@ class _MainShellState extends State<MainShell>
   bool _openingLan = false;
   bool _usingClipboard = false;
   double _pageSwipeDistance = 0;
-  static const titles = ['分享解析', '互联', '网盘列表', '传输管理', '我的'];
+  static const titles = ['分享解析', '局域网', '网盘列表', '传输管理', '我的'];
 
   Widget _retainedTab(int index, Widget Function() builder) {
     if (index == selected) _visitedTabs.add(index);
@@ -1121,7 +1121,6 @@ class _MainShellState extends State<MainShell>
                                       () => LanTabPage(
                                         widget.services,
                                         active: selected == 1,
-                                        onOpen: _showLan,
                                       ),
                                     ),
                                     _retainedTab(

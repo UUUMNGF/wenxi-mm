@@ -96,6 +96,26 @@ func handle(input request) (result any, err error) {
 		gopeed.StopTorrentStream(args.ID)
 	case "torrentStreamInterrupt":
 		gopeed.InterruptTorrentStream(args.ID)
+	case "lanShareProbe":
+		var value string
+		value, err = gopeed.LanShareProbe(string(input.Args))
+		if err == nil {
+			result = json.RawMessage(value)
+		}
+	case "lanShareList":
+		var value string
+		value, err = gopeed.LanShareList(string(input.Args))
+		if err == nil {
+			result = json.RawMessage(value)
+		}
+	case "lanShareStreamStart":
+		var value string
+		value, err = gopeed.LanShareStreamStart(string(input.Args))
+		if err == nil {
+			result = json.RawMessage(value)
+		}
+	case "lanShareStreamStop":
+		gopeed.LanShareStreamStop(args.ID)
 	case "snapshot":
 		var value string
 		value, err = gopeed.Snapshot(args.ID)

@@ -16,6 +16,7 @@ import 'playback_controller.dart';
 import 'playback_sources.dart';
 import 'torrent_playback.dart';
 import 'download_playback.dart';
+import 'lan_share_playback.dart';
 
 typedef RecentBackendFactory = PlaybackBackend Function(PlaybackEntry, bool);
 
@@ -167,6 +168,18 @@ Future<PlaybackController> _restoreRecentPlayback(
         TorrentInfo(source.torrentHash, record.name, raw, files),
         selected!,
         backendFactory: backendFactory,
+        initialHistoryKey: record.key,
+      );
+    case PlaybackSourceKind.lanShare:
+      final server = services.lanShares.server(source.lanServerId);
+      require(server != null, '局域网服务器已删除，请重新添加后再打开');
+      RequestScope.checkpoint();
+      return lanSharePlayback(
+        services,
+        server!,
+        path: source.path,
+        name: record.name,
+        size: source.size,
         initialHistoryKey: record.key,
       );
   }

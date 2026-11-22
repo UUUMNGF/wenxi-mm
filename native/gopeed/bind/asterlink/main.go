@@ -509,6 +509,7 @@ func Close() error {
 	closeParserRequests()
 	closeHTTPProbes()
 	closeTorrentMetadata()
+	closeLanShares()
 	apiMu.Lock()
 	defer apiMu.Unlock()
 	closeTorrentStreams()

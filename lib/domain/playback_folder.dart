@@ -64,6 +64,12 @@ String? playbackSourceFolder(PlaybackSource? source) {
       ]);
     case PlaybackSourceKind.download:
       return null;
+    case PlaybackSourceKind.lanShare:
+      return playbackKey([
+        'lan-share-folder',
+        source.lanServerId,
+        p.posix.dirname(source.path.replaceAll('\\', '/')),
+      ]);
   }
 }
 

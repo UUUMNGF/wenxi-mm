@@ -19,7 +19,7 @@ try {
     $env:GOARCH = if ($Architecture -eq 'arm64') { 'arm64' } else { 'amd64' }
     $env:CGO_ENABLED = '0'
     if (-not $env:GOPROXY) { $env:GOPROXY = 'https://goproxy.cn,https://goproxy.io' }
-    $env:GOTOOLCHAIN = 'go1.24.7'
+    $env:GOTOOLCHAIN = 'go1.26.11'
     Push-Location -LiteralPath $sourcePath
     try {
         Invoke-AsterLinkTool -Command $Go -Arguments @('build', '-tags', 'nosqlite', '-trimpath', '-ldflags', '-s -w -checklinkname=0 -H=windowsgui -X github.com/GopeedLab/gopeed/pkg/base.Version=1.8.1', '-o', (Join-Path $binaryPath 'asterlink_gopeed.exe'), './cmd/asterlink') -Failure 'Windows Gopeed helper build failed'

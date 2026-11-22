@@ -74,6 +74,14 @@ func dispatch(method, encoded string) (result any, err error) {
 		gopeed.StopTorrentStream(args.ID)
 	case "torrentStreamInterrupt":
 		gopeed.InterruptTorrentStream(args.ID)
+	case "lanShareProbe":
+		value, err = gopeed.LanShareProbe(encoded)
+	case "lanShareList":
+		value, err = gopeed.LanShareList(encoded)
+	case "lanShareStreamStart":
+		value, err = gopeed.LanShareStreamStart(encoded)
+	case "lanShareStreamStop":
+		gopeed.LanShareStreamStop(args.ID)
 	default:
 		err = errors.New("unknown download request")
 	}

@@ -45,7 +45,7 @@ jobs:
       PUB_HOSTED_URL: https://pub.dev
       FLUTTER_STORAGE_BASE_URL: https://storage.googleapis.com
       GOPROXY: https://proxy.golang.org,direct
-      GOTOOLCHAIN: go1.24.7
+      GOTOOLCHAIN: go1.26.11
       GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx4g
       ASTERLINK_CONTROL_URL: ${{ secrets.ASTERLINK_CONTROL_URL || vars.ASTERLINK_CONTROL_URL }}
       ASTERLINK_GITHUB_REPO: ${{ vars.ASTERLINK_GITHUB_REPO || github.repository }}

@@ -472,6 +472,10 @@ class NativeBridge(private val context: Context, engine: FlutterEngine) {
             "torrentStreamStatus" -> { check(nativeStarted); return Gopeed.torrentStreamStatus(id) }
             "torrentStreamStop" -> if (nativeStarted) Gopeed.stopTorrentStream(id)
             "torrentStreamInterrupt" -> if (nativeStarted) Gopeed.interruptTorrentStream(id)
+            "lanShareProbe" -> return Gopeed.lanShareProbe(args.toString())
+            "lanShareList" -> return Gopeed.lanShareList(args.toString())
+            "lanShareStreamStart" -> return Gopeed.lanShareStreamStart(args.toString())
+            "lanShareStreamStop" -> Gopeed.lanShareStreamStop(id)
             "snapshot" -> { check(nativeStarted); return Gopeed.snapshot(id) }
             "pause" -> if (nativeStarted) Gopeed.pause(id)
             "remove" -> if (nativeStarted) Gopeed.remove(id)

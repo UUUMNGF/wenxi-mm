@@ -50,6 +50,7 @@ import 'upload/upload_sources.dart';
 import 'transfer/rapid_transfer_manager.dart';
 import 'transfer/cross_transfer_relay.dart';
 import 'lan/lan_service.dart';
+import 'lan/lan_share_service.dart';
 import 'lan/lan_download_route.dart';
 import 'lan/lan_files.dart';
 import 'download/download_shutdown.dart';
@@ -101,6 +102,7 @@ class AppServices extends ChangeNotifier {
     WindowsActions? windowsActions,
     RandomAccessFile? instanceLock,
     LanService? lanService,
+    LanShareManager? lanShareManager,
     ParserRuleHub? parserRuleHub,
     RemoteSources? remoteSources,
     ResourceSearch? resourceSearch,
@@ -295,6 +297,7 @@ class AppServices extends ChangeNotifier {
               ? () => transferActivity.sync()
               : null,
         );
+    lanShares = lanShareManager ?? LanShareManager(store, transport);
     transferActivity = TransferActivity(
       downloads: () => downloads.activity,
       uploads: () => uploads.activity,
@@ -440,6 +443,7 @@ class AppServices extends ChangeNotifier {
   late final UploadManager uploads;
   late final RapidTransferManager rapidTransfers;
   late final LanService lan;
+  late final LanShareManager lanShares;
   late final TransferActivity transferActivity;
   late final NavigationTransfers navigationTransfers;
   final transferTab = ValueNotifier<int>(0);

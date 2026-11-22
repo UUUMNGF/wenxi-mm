@@ -3,7 +3,7 @@ import 'downloads.dart';
 import 'models.dart';
 import 'torrent.dart';
 
-enum PlaybackSourceKind { cloud, local, torrent, download }
+enum PlaybackSourceKind { cloud, local, torrent, download, lanShare }
 
 /// Durable media identity. Short-lived playback URLs, cookies and cleanup
 /// leases belong to the active session, never to a history entry.
@@ -17,7 +17,8 @@ class PlaybackSource {
       torrentHash = '',
       torrentIndex = -1,
       torrentData = '',
-      torrentFiles = const [];
+      torrentFiles = const [],
+      lanServerId = '';
 
   const PlaybackSource.local({
     required this.path,
@@ -28,7 +29,8 @@ class PlaybackSource {
        torrentHash = '',
        torrentIndex = -1,
        torrentData = '',
-       torrentFiles = const [];
+       torrentFiles = const [],
+       lanServerId = '';
 
   const PlaybackSource.download(this.downloadId, {this.size = 0})
     : kind = PlaybackSourceKind.download,
@@ -37,7 +39,8 @@ class PlaybackSource {
       torrentHash = '',
       torrentIndex = -1,
       torrentData = '',
-      torrentFiles = const [];
+      torrentFiles = const [],
+      lanServerId = '';
 
   PlaybackSource.torrent(
     String hash,
@@ -50,11 +53,24 @@ class PlaybackSource {
        downloadId = '',
        size = file.size,
        torrentHash = hash,
-       torrentIndex = file.index;
+       torrentIndex = file.index,
+       lanServerId = '';
+
+  PlaybackSource.lanShare(
+    this.lanServerId, {
+    required this.path,
+    this.size = 0,
+  }) : kind = PlaybackSourceKind.lanShare,
+       cloud = null,
+       downloadId = '',
+       torrentHash = '',
+       torrentIndex = -1,
+       torrentData = '',
+       torrentFiles = const [];
 
   final PlaybackSourceKind kind;
   final DownloadOrigin? cloud;
-  final String path, downloadId, torrentHash;
+  final String path, downloadId, torrentHash, lanServerId;
   final int size, torrentIndex;
   // In-memory context, persisted once per info hash by PlaybackStore.
   final String torrentData;
@@ -68,6 +84,7 @@ class PlaybackSource {
     PlaybackSourceKind.local => '本地文件',
     PlaybackSourceKind.torrent => 'BT 在线播放',
     PlaybackSourceKind.download => '边下边播',
+    PlaybackSourceKind.lanShare => '局域网共享',
   };
 
   Json toJson() => {
@@ -89,6 +106,7 @@ class PlaybackSource {
       'hash': torrentHash,
       'index': torrentIndex,
     },
+    if (kind == PlaybackSourceKind.lanShare) 'lanServerId': lanServerId,
   };
 
   static PlaybackSource? tryFromJson(Object? value) {
@@ -140,6 +158,18 @@ class PlaybackSource {
               json.str('path'),
               json.integer('size'),
             ),
+          );
+        case 'lanShare':
+          require(
+            json.str('lanServerId').isNotEmpty &&
+                json.str('path').isNotEmpty &&
+                json.integer('size') > 0,
+            '局域网来源不完整',
+          );
+          return PlaybackSource.lanShare(
+            json.str('lanServerId'),
+            path: json.str('path'),
+            size: json.integer('size'),
           );
       }
     } on Object {

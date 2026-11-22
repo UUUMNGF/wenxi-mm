@@ -34,7 +34,7 @@ try {
     # Keep dependency checksum verification; CI may select the upstream proxy.
     if (-not $env:GOPROXY) { $env:GOPROXY = 'https://goproxy.cn,https://goproxy.io' }
     if (-not $env:GOSUMDB) { $env:GOSUMDB = 'sum.golang.org' }
-    $env:GOTOOLCHAIN = 'go1.24.7'
+    $env:GOTOOLCHAIN = 'go1.26.11'
     # gomobile generates a separate module that also needs the pinned x/mobile bind runtime.
     $env:GOFLAGS = '-mod=mod'
     $env:GOBIN = $ToolDirectory
@@ -53,7 +53,7 @@ try {
     }
     Push-Location -LiteralPath $nativeSource
     try {
-        Invoke-AsterLinkTool -Command $goPath -Arguments @('version') -Failure 'Go 1.24.7 is unavailable'
+        Invoke-AsterLinkTool -Command $goPath -Arguments @('version') -Failure 'Go 1.26.11 is unavailable'
         if ($Test) {
             Invoke-AsterLinkTool -Command $goPath -Arguments @('test', '-tags', 'nosqlite', '-ldflags=-checklinkname=0', './bind/asterlink', '-count=1', '-timeout=120s') -Failure 'Gopeed integration tests failed'
         }
